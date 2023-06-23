@@ -5,7 +5,7 @@ version = 0.1
 [default]
 [default.global]
 [default.global.parameters]
-stack_name = "sam-merge-sort"
+stack_name = "sam-yell"
 
 [default.build]
 [default.build.parameters]
@@ -17,6 +17,11 @@ parallel = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 resolve_s3 = true
+stack_name = "sam-yell"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1n8q2zgo13sv8"
+s3_prefix = "sam-yell"
+region = "us-east-1"
+image_repositories = []
 
 [default.package]
 [default.package.parameters]
