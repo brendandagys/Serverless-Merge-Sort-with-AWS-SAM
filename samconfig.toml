@@ -9,6 +9,7 @@ stack_name = "sam-yell"
 
 [default.build]
 [default.build.parameters]
+beta_features = true
 cached = true
 parallel = true
 
@@ -17,11 +18,11 @@ parallel = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 resolve_s3 = true
-stack_name = "sam-yell"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1n8q2zgo13sv8"
 s3_prefix = "sam-yell"
 region = "us-east-1"
 image_repositories = []
+parameter_overrides = "HostedZoneId=\"Z1048063LC3J2IKH5GGI\""
 
 [default.package]
 [default.package.parameters]
@@ -29,6 +30,7 @@ resolve_s3 = true
 
 [default.sync]
 [default.sync.parameters]
+beta_features = true
 watch = true
 
 [default.local_start_api]
