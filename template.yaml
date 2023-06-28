@@ -1,7 +1,19 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Conditions:
+  CreateSlowResources: !Equals [!Ref CreateSlowResources, 'true']
+
 Parameters:
+  CreateSlowResources:
+    Default: 'false'
+    Type: String
+  CertificateArn:
+    Default: 'arn:aws:acm:us-east-1:708746137251:certificate/49334720-67b5-4c4d-86b7-233148319cd7'
+    Type: String
+  Domain:
+    Default: yell.brendandagys.com
+    Type: String
   HostedZoneId:
     Default: Z1048063LC3J2IKH5GGI
     Type: String
@@ -9,23 +21,23 @@ Parameters:
 Resources:
   Certificate:
     Type: AWS::CertificateManager::Certificate
+    Condition: CreateSlowResources
+    DeletionPolicy: Retain
     Properties:
-      CertificateTransparencyLoggingPreference: ENABLED
-      DomainName: api.yell.brendandagys.com
+      DomainName: !Sub api.${Domain}
       DomainValidationOptions:
-        - DomainName: api.yell.brendandagys.com
+        - DomainName: !Sub api.${Domain}
           HostedZoneId: !Ref HostedZoneId
       ValidationMethod: DNS
 
   Api:
     Type: AWS::Serverless::Api
-    # DependsOn: Certificate
     Properties:
       Name: !Ref AWS::StackName
       StageName: Prod
       Domain:
-        DomainName: !Sub api.yell.brendandagys.com
-        CertificateArn: !Ref Certificate
+        DomainName: !Sub api.${Domain}
+        CertificateArn: !If [CreateSlowResources, !Ref Certificate, !Ref CertificateArn]
         EndpointConfiguration: EDGE
         Route53:
           HostedZoneId: !Ref HostedZoneId
@@ -35,13 +47,13 @@ Resources:
     Metadata:
       BuildMethod: rust-cargolambda
     Properties:
-      CodeUri: ./rust_app   # Points to dir of Cargo.toml
-      Handler: bootstrap    # Don't change this default executable name from Cargo Lambda
+      CodeUri: ./rust_app  # Points to dir of Cargo.toml
+      Handler: bootstrap   # Don't change this default executable name from Cargo Lambda
       Runtime: provided.al2
       Architectures:
         - arm64
       Events:
-        Post:
+        SendMessage:
           Type: Api
           Properties:
             Path: /
@@ -50,8 +62,10 @@ Resources:
 
   WebsiteBucket:
     Type: AWS::S3::Bucket
+    Condition: CreateSlowResources
+    DeletionPolicy: Retain
     Properties:
-      BucketName: yell.brendandagys.com
+      BucketName: !Ref Domain
       PublicAccessBlockConfiguration:
         BlockPublicPolicy: false
         RestrictPublicBuckets: false
@@ -60,6 +74,8 @@ Resources:
 
   WebsiteBucketPolicy:
     Type: AWS::S3::BucketPolicy
+    Condition: CreateSlowResources
+    DeletionPolicy: Retain
     Properties:
       Bucket: !Ref WebsiteBucket
       PolicyDocument:
@@ -68,13 +84,13 @@ Resources:
             Effect: Allow
             Principal: '*'
             Action: s3:GetObject
-            Resource: !Sub 'arn:aws:s3:::${WebsiteBucket}/*'
+            Resource: !Sub arn:aws:s3:::${WebsiteBucket}/*
 
   DnsRecordToFrontend:
     Type: AWS::Route53::RecordSet
     Properties:
       HostedZoneId: !Ref HostedZoneId
-      Name: yell.brendandagys.com
+      Name: !Ref Domain
       Type: A
       AliasTarget:
         HostedZoneId: Z3AQBSTGFYJSTF # us-east-1 S3 Hosted Zone ID
