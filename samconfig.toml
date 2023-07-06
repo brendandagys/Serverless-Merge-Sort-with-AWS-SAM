@@ -19,10 +19,11 @@ capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 resolve_s3 = true
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1n8q2zgo13sv8"
-s3_prefix = "sam-yell"
+s3_prefix = "sam-merge-sort"
 region = "us-east-1"
 image_repositories = []
-parameter_overrides = "CreateSlowResources=\"false\" CertificateArn=\"arn:aws:acm:us-east-1:708746137251:certificate/49334720-67b5-4c4d-86b7-233148319cd7\" Domain=\"yell.brendandagys.com\" HostedZoneId=\"Z1048063LC3J2IKH5GGI\""
+parameter_overrides = "CreateSlowResources=\"true\" CertificateArn=\"arn:aws:acm:us-east-1:708746137251:certificate/49334720-67b5-4c4d-86b7-233148319cd7\" Domain=\"sort.brendandagys.com\" HostedZoneId=\"Z1048063LC3J2IKH5GGI\""
+stack_name = "sam-merge-sort"
 
 [default.package]
 [default.package.parameters]
