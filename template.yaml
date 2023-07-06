@@ -9,7 +9,7 @@ Parameters:
     Default: 'false'
     Type: String
   CertificateArn:
-    Default: 'arn:aws:acm:us-east-1:708746137251:certificate/49334720-67b5-4c4d-86b7-233148319cd7'
+    Default: 'arn:aws:acm:us-east-1:708746137251:certificate/c50de18c-17f8-462b-85e4-99e9c4fb04ca'
     Type: String
   Domain:
     Default: sort.brendandagys.com
