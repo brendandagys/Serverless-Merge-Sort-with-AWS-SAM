@@ -12,7 +12,7 @@ Parameters:
     Default: 'arn:aws:acm:us-east-1:708746137251:certificate/49334720-67b5-4c4d-86b7-233148319cd7'
     Type: String
   Domain:
-    Default: yell.brendandagys.com
+    Default: sort.brendandagys.com
     Type: String
   HostedZoneId:
     Default: Z1048063LC3J2IKH5GGI
