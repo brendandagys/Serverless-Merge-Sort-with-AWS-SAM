@@ -1,10 +1,5 @@
 use lambda_http::{service_fn, Body, Error, Request, Response};
 
-#[derive(serde::Deserialize)]
-struct RequestBody {
-    numbers: String,
-}
-
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     lambda_http::run(service_fn(handler)).await?;
@@ -13,25 +8,19 @@ async fn main() -> Result<(), Error> {
 
 async fn handler(request: Request) -> Result<Response<Body>, Error> {
     match request.body() {
-        Body::Text(body) => match serde_json::from_str::<RequestBody>(body) {
-            Ok(body) => Ok(Response::builder()
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", "OPTIONS, POST")
-                .body(Body::Text(format!(
-                    "{:?}",
-                    merge_sort(&split_string_to_ints(&body.numbers))
-                )))?),
-            Err(error) => Ok(Response::builder()
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", "OPTIONS, POST")
-                .body(Body::Text(format!("ERROR: {error}")))?),
-        },
+        Body::Text(body) => Ok(Response::builder()
+            .header("Access-Control-Allow-Origin", "*")
+            .header("Access-Control-Allow-Methods", "OPTIONS, POST")
+            .body(Body::Text(format!(
+                "{:?}",
+                merge_sort(&split_string_into_vec_of_ints(body))
+            )))?),
         _ => panic!(),
     }
 }
 
 // Function to take a string, split it on the commas, remove whitespace, and create a vector of integers
-fn split_string_to_ints(string: &str) -> Vec<i32> {
+fn split_string_into_vec_of_ints(string: &str) -> Vec<i32> {
     string
         .split(',')
         .into_iter()

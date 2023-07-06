@@ -1251,8 +1251,6 @@ dependencies = [
  "aws-types",
  "http",
  "lambda_http",
- "serde",
- "serde_json",
  "tokio",
 ]
 
