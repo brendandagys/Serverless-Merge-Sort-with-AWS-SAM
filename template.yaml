@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Conditions:
-  CreateSlowResources: !Equals [!Ref CreateSlowResources, 'false']
+  CreateSlowResources: !Equals [!Ref CreateSlowResources, 'true']
 
 Parameters:
   CreateSlowResources:
