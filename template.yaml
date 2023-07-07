@@ -6,10 +6,13 @@ Conditions:
 
 Parameters:
   CreateSlowResources:
-    Default: 'false'
+    Default: 'true'
+    Type: String
+  DistributionHomePage:
+    Default: index.html
     Type: String
   CertificateArn:
-    Default: 'arn:aws:acm:us-east-1:708746137251:certificate/c50de18c-17f8-462b-85e4-99e9c4fb04ca'
+    Default: ''
     Type: String
   Domain:
     Default: sort.brendandagys.com
@@ -24,9 +27,11 @@ Resources:
     Condition: CreateSlowResources
     DeletionPolicy: Retain
     Properties:
-      DomainName: !Sub api.${Domain}
+      DomainName: !Ref Domain
+      SubjectAlternativeNames:
+        - !Sub '*.${Domain}'
       DomainValidationOptions:
-        - DomainName: !Sub api.${Domain}
+        - DomainName: !Ref Domain
           HostedZoneId: !Ref HostedZoneId
       ValidationMethod: DNS
 
@@ -60,31 +65,69 @@ Resources:
             Method: POST
             RestApiId: !Ref Api
 
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Ref AWS::StackName
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  AppDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Aliases:
+          - !Ref Domain
+        Origins:
+          - Id: !Ref Domain
+            DomainName: !Sub ${AWS::StackName}.s3.${AWS::Region}.amazonaws.com
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+            OriginAccessControlId: !GetAtt OriginAccessControl.Id
+        ViewerCertificate:
+          AcmCertificateArn: !Ref Certificate
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+        DefaultRootObject: !Ref DistributionHomePage
+        DefaultCacheBehavior:
+          TargetOriginId: !Ref Domain
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          ViewerProtocolPolicy: redirect-to-https
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # CachingOptimized
+
   WebsiteBucket:
     Type: AWS::S3::Bucket
-    Condition: CreateSlowResources
     DeletionPolicy: Retain
     Properties:
-      BucketName: !Ref Domain
+      BucketName: !Ref AWS::StackName
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
       PublicAccessBlockConfiguration:
-        BlockPublicPolicy: false
-        RestrictPublicBuckets: false
-      WebsiteConfiguration:
-        IndexDocument: index.html
-
+        BlockPublicAcls: false # CloudFront and CodeBuild use ACLs
+        IgnorePublicAcls: false
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+  
   WebsiteBucketPolicy:
     Type: AWS::S3::BucketPolicy
-    Condition: CreateSlowResources
-    DeletionPolicy: Retain
     Properties:
-      Bucket: !Ref WebsiteBucket
+      Bucket: !Ref AWS::StackName
       PolicyDocument:
+        Version: 2012-10-17
         Statement:
-          - Sid: PublicReadGetObject
             Effect: Allow
-            Principal: '*'
+            Principal:
+              Service: cloudfront.amazonaws.com
             Action: s3:GetObject
-            Resource: !Sub arn:aws:s3:::${WebsiteBucket}/*
+            Resource: !Sub arn:aws:s3:::${AWS::StackName}/*
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${AppDistribution}
 
   DnsRecordToFrontend:
     Type: AWS::Route53::RecordSet
@@ -93,5 +136,5 @@ Resources:
       Name: !Ref Domain
       Type: A
       AliasTarget:
-        HostedZoneId: Z3AQBSTGFYJSTF # us-east-1 S3 Hosted Zone ID
-        DNSName: s3-website-us-east-1.amazonaws.com
+        HostedZoneId: Z2FDTNDATAQYW2 # Always this when creating an alias record that routes traffic to a CloudFront distribution
+        DNSName: !GetAtt AppDistribution.DomainName
