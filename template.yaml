@@ -2,17 +2,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Conditions:
-  CreateSlowResources: !Equals [!Ref CreateSlowResources, 'true']
+  CreateSlowResources: !Equals [1,0]
 
 Parameters:
-  CreateSlowResources:
-    Default: 'true'
-    Type: String
-  DistributionHomePage:
-    Default: index.html
-    Type: String
   CertificateArn:
-    Default: ''
+    Default: arn:aws:acm:us-east-1:708746137251:certificate/17b38c0f-ac70-4643-a6bd-2e5a57719ba7
     Type: String
   Domain:
     Default: sort.brendandagys.com
@@ -53,8 +47,9 @@ Resources:
             RestApiId: !Ref Api
   ##############################################################################
   WebsiteBucket:
-    Type: AWS::S3::Bucket
+    Condition: CreateSlowResources
     DeletionPolicy: Retain
+    Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref AWS::StackName
       OwnershipControls:
@@ -67,22 +62,26 @@ Resources:
         RestrictPublicBuckets: true
   ##############################################################################
   WebsiteBucketPolicy:
+    Condition: CreateSlowResources
+    DeletionPolicy: Retain
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref AWS::StackName
+      Bucket: !Ref WebsiteBucket
       PolicyDocument:
         Version: 2012-10-17
         Statement:
-            Effect: Allow
-            Principal:
-              Service: cloudfront.amazonaws.com
-            Action: s3:GetObject
-            Resource: !Sub arn:aws:s3:::${AWS::StackName}/*
-            Condition:
-              StringEquals:
-                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${AppDistribution}
+          Effect: Allow
+          Principal:
+            Service: cloudfront.amazonaws.com
+          Action: s3:GetObject
+          Resource: !Sub arn:aws:s3:::${WebsiteBucket}/*
+          Condition:
+            StringEquals:
+              AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${AppDistribution}
   ##############################################################################
   DnsRecordToFrontend:
+    Condition: CreateSlowResources
+    DeletionPolicy: Retain
     Type: AWS::Route53::RecordSet
     Properties:
       HostedZoneId: !Ref HostedZoneId
@@ -97,9 +96,9 @@ Resources:
   ##############################################################################
 
   Certificate:
-    Type: AWS::CertificateManager::Certificate
     Condition: CreateSlowResources
     DeletionPolicy: Retain
+    Type: AWS::CertificateManager::Certificate
     Properties:
       DomainName: !Ref Domain
       SubjectAlternativeNames:
@@ -110,6 +109,8 @@ Resources:
       ValidationMethod: DNS
   ##############################################################################
   OriginAccessControl:
+    Condition: CreateSlowResources
+    DeletionPolicy: Retain
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
@@ -119,6 +120,8 @@ Resources:
         SigningProtocol: sigv4
   ##############################################################################
   AppDistribution:
+    Condition: CreateSlowResources
+    DeletionPolicy: Retain
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
@@ -135,7 +138,7 @@ Resources:
           AcmCertificateArn: !Ref Certificate
           SslSupportMethod: sni-only
           MinimumProtocolVersion: TLSv1.2_2021
-        DefaultRootObject: !Ref DistributionHomePage
+        DefaultRootObject: index.html
         DefaultCacheBehavior:
           TargetOriginId: !Ref Domain
           AllowedMethods: [GET, HEAD, OPTIONS]

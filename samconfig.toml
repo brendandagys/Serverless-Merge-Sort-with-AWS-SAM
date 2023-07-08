@@ -22,7 +22,6 @@ s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1n8q2zgo13sv8"
 s3_prefix = "sam-merge-sort"
 region = "us-east-1"
 image_repositories = []
-parameter_overrides = "CreateSlowResources=\"true\" DistributionHomePage=\"index.html\" CertificateArn=\"''\" Domain=\"sort.brendandagys.com\" HostedZoneId=\"Z1048063LC3J2IKH5GGI\""
 stack_name = "sam-merge-sort"
 
 [default.package]
