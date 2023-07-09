@@ -17,7 +17,7 @@ Resources:
       StageName: Prod
       Domain:
         DomainName: !Sub api.${Domain}
-        CertificateArn: !If [CreateSlowResources, !Ref Certificate, !Ref CertificateArn]
+        CertificateArn: !Ref Certificate
         EndpointConfiguration: EDGE
         Route53:
           HostedZoneId: !Ref HostedZoneId
