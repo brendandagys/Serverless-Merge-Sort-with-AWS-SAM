@@ -1,4 +1,4 @@
-# sam-yell
+# sam-merge-sort
 
 This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders:
 
@@ -64,7 +64,7 @@ To simplify troubleshooting, SAM CLI has a command called `sam logs`. `sam logs`
 `NOTE`: This command works for all AWS Lambda functions; not just the ones you deploy using SAM.
 
 ```bash
-sam-yell$ sam logs -n HelloWorldFunction --stack-name sam-yell --tail
+sam-merge-sort$ sam logs -n HelloWorldFunction --stack-name sam-merge-sort --tail
 ```
 
 You can find more information and examples about filtering Lambda function logs in the [SAM CLI Documentation](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-logging.html).
