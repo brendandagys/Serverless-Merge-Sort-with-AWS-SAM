@@ -1,13 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
-Conditions:
-  CreateSlowResources: !Equals [1,0]
-
 Parameters:
-  CertificateArn:
-    Default: arn:aws:acm:us-east-1:708746137251:certificate/17b38c0f-ac70-4643-a6bd-2e5a57719ba7
-    Type: String
   Domain:
     Default: sort.brendandagys.com
     Type: String
@@ -33,8 +27,8 @@ Resources:
     Metadata:
       BuildMethod: rust-cargolambda
     Properties:
-      CodeUri: ./rust_app  # Points to dir of Cargo.toml
-      Handler: bootstrap   # Don't change this default executable name from Cargo Lambda
+      CodeUri: ./rust_app  # Points to directory of Cargo.toml
+      Handler: bootstrap   # Leave this default executable name from Cargo Lambda
       Runtime: provided.al2
       Architectures:
         - arm64
@@ -47,8 +41,6 @@ Resources:
             RestApiId: !Ref Api
   ##############################################################################
   WebsiteBucket:
-    Condition: CreateSlowResources
-    DeletionPolicy: Retain
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref AWS::StackName
@@ -62,8 +54,6 @@ Resources:
         RestrictPublicBuckets: true
   ##############################################################################
   WebsiteBucketPolicy:
-    Condition: CreateSlowResources
-    DeletionPolicy: Retain
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Ref WebsiteBucket
@@ -80,8 +70,6 @@ Resources:
               AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${AppDistribution}
   ##############################################################################
   DnsRecordToFrontend:
-    Condition: CreateSlowResources
-    DeletionPolicy: Retain
     Type: AWS::Route53::RecordSet
     Properties:
       HostedZoneId: !Ref HostedZoneId
@@ -92,25 +80,18 @@ Resources:
         DNSName: !GetAtt AppDistribution.DomainName
   
   ##############################################################################
-  #####                      OPTIONAL - allows for HTTPS                   #####
-  ##############################################################################
-
+  ######################   OPTIONAL - allows for HTTPS  ########################
   Certificate:
-    Condition: CreateSlowResources
-    DeletionPolicy: Retain
     Type: AWS::CertificateManager::Certificate
     Properties:
       DomainName: !Ref Domain
-      SubjectAlternativeNames:
-        - !Sub '*.${Domain}'
+      SubjectAlternativeNames: [!Sub '*.${Domain}']
       DomainValidationOptions:
         - DomainName: !Ref Domain
           HostedZoneId: !Ref HostedZoneId
       ValidationMethod: DNS
   ##############################################################################
   OriginAccessControl:
-    Condition: CreateSlowResources
-    DeletionPolicy: Retain
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
@@ -120,14 +101,11 @@ Resources:
         SigningProtocol: sigv4
   ##############################################################################
   AppDistribution:
-    Condition: CreateSlowResources
-    DeletionPolicy: Retain
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
         Enabled: true
-        Aliases:
-          - !Ref Domain
+        Aliases: [!Ref Domain]
         Origins:
           - Id: !Ref Domain
             DomainName: !Sub ${AWS::StackName}.s3.${AWS::Region}.amazonaws.com
