@@ -43,7 +43,7 @@ Resources:
   WebsiteBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref AWS::StackName
+      BucketName: sam-merge-sort
       OwnershipControls:
         Rules:
           - ObjectOwnership: BucketOwnerPreferred
@@ -108,7 +108,7 @@ Resources:
         Aliases: [!Ref Domain]
         Origins:
           - Id: !Ref Domain
-            DomainName: !Sub ${AWS::StackName}.s3.${AWS::Region}.amazonaws.com
+            DomainName: !Sub sam-merge-sort.s3.${AWS::Region}.amazonaws.com
             S3OriginConfig:
               OriginAccessIdentity: ''
             OriginAccessControlId: !GetAtt OriginAccessControl.Id
