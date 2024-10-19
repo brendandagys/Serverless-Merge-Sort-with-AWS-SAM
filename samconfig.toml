@@ -22,7 +22,7 @@ s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1n8q2zgo13sv8"
 s3_prefix = "sam-merge-sort"
 region = "us-east-1"
 image_repositories = []
-stack_name = "sam-merge-sort"
+parameter_overrides = "Domain=\"sort.brendandagys.com\" HostedZoneId=\"Z1048063LC3J2IKH5GGI\""
 
 [default.package]
 [default.package.parameters]

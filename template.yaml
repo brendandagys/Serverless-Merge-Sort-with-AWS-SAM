@@ -33,7 +33,7 @@ Resources:
       Architectures:
         - arm64
       Events:
-        SendMessage:
+        SortNumbers:
           Type: Api
           Properties:
             Path: /
