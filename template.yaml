@@ -21,6 +21,10 @@ Resources:
         EndpointConfiguration: EDGE
         Route53:
           HostedZoneId: !Ref HostedZoneId
+      Cors:
+        AllowMethods: "'POST'"
+        AllowOrigin: "'https://sort.brendandagys.com'"
+        MaxAge: "'86400'"
   ##############################################################################
   Function:
     Type: AWS::Serverless::Function
